@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Viewer</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f0f0f;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.card {
+    background: #1c1c1c;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: none;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #00a8ff;
+    color: white;
+    cursor: pointer;
+}
+
+.badge {
+    display: inline-block;
+    background: #333;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+        <input id="apiUrl" placeholder="Masukkan URL API di sini">
+        <button onclick="loadAPI()">Load API</button>
+    </div>
+
+    <div class="card">
+        <h2 id="title">Title</h2>
+        <p id="desc"></p>
+        <img id="thumb">
+        <video id="video" controls style="width:100%; margin-top:10px;"></video>
+    </div>
+
+    <div class="card">
+        <h3>Creator</h3>
+        <img id="creatorImg" style="width:80px; border-radius:50%;">
+        <p id="creatorName"></p>
+    </div>
+
+    <div class="card">
+        <h3>Genres</h3>
+        <div id="genres"></div>
+    </div>
+
+</div>
+
+<script>
+function getBestImage(thumbnailObj) {
+    const order = ["1080", "720", "480", "360", "240"];
+
+    for (let i = 0; i < order.length; i++) {
+        if (thumbnailObj[order[i]]) {
+            return thumbnailObj[order[i]];
+        }
+    }
+    return "";
+}
+
+// 🔥 video high quality builder (from your pattern)
+function getHighestVideo(v) {
+    const id = v.unique_id;
+    return `https://media.of.tv/videos/${id}/${id}-1080.mp4`;
+}
+
+async function loadAPI() {
+    const url = document.getElementById("apiUrl").value;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const v = data.data.video;
+
+        // ======================
+        // BASIC INFO
+        // ======================
+        document.getElementById("title").innerText = v.title;
+        document.getElementById("desc").innerText = v.description;
+
+        // 🔥 BEST IMAGE AUTO
+        document.getElementById("thumb").src = getBestImage(v.thumbnail);
+
+        // 🔥 BEST VIDEO (FORCED 1080p)
+        document.getElementById("video").src = getHighestVideo(v);
+
+        // ======================
+        // CREATOR
+        // ======================
+        document.getElementById("creatorImg").src = v.creator.profile_image.large;
+        document.getElementById("creatorName").innerText = v.creator.channel_name;
+
+        // ======================
+        // GENRES
+        // ======================
+        const genresBox = document.getElementById("genres");
+        genresBox.innerHTML = "";
+
+        v.genres.forEach(g => {
+            const span = document.createElement("span");
+            span.className = "badge";
+            span.innerText = g.name;
+            genresBox.appendChild(span);
+        });
+
+    } catch (err) {
+        alert("Gagal load API: " + err);
+    }
+}
+</script>
+
+</body>
+</html>
